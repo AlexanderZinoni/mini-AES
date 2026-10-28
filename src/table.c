@@ -1,12 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-
-typedef unsigned int uint;
+#include "table.h"
 
 
 uint *new_table(size_t n){
 
-	uint *table = malloc((1<<n)*sizeof(uint));
+	uint *table = malloc(n*sizeof(uint));
 
 	if (table == NULL){
 		fprintf(stderr, "Table allocation failed.\n");
@@ -24,7 +21,7 @@ void free_table(uint *table){
 }
 
 
-uint sum_poly(size_t n, uint x, uint y){
+uint sum_poly(uint x, uint y){
 	return x^y;
 }
 
@@ -57,12 +54,14 @@ uint mult_poly_mod(size_t n, uint x, uint y, uint ppoly){
 }
 
 
-void fill_tab_exp(uint *tab, size_t n, uint ppoly){
+uint *get_tab_exp(size_t n, uint ppoly){
 	size_t k = (1<<n) - 1;  // size of the multiplicative group.
 	uint tmp = 1U;          // 1 in F2^n[X].
 
+	uint *tab_exp = new_table(k);
+
 	for (size_t e = 0; e<k; e++){
-		tab[e] = tmp;
+		tab_exp[e] = tmp;
 
 		tmp <<= 1; // multiply tmp by X.
 
@@ -70,12 +69,17 @@ void fill_tab_exp(uint *tab, size_t n, uint ppoly){
 			tmp ^= ppoly;  // reduce modulo ppoly
 		}
 	}
+
+	return tab_exp;
 }
 
 
-void fill_tab_log(uint *tab_log, uint *tab_exp, size_t n){
+uint *fill_tab_log(size_t n, uint *tab_exp){
 	size_t k = (1<<n) - 1;  // size of the multiplicative group.	
 	size_t tmp;
+
+	uint *tab_log = new_table(k + 1);
+
 
 	// tab_log[0] is infinity, works if n<32 here.
 	tab_log[0] = (uint) -1;
@@ -84,6 +88,8 @@ void fill_tab_log(uint *tab_log, uint *tab_exp, size_t n){
 		tmp = (size_t) tab_exp[e];
 		tab_log[tmp] = (uint) e;
 	}
+
+	return tab_log;
 }
 
 
@@ -97,6 +103,51 @@ uint inv_mod(uint poly, uint *tab_log, uint *tab_exp, size_t n){
 }
 
 
-int main(){
-	printf("main\n");
+uint *fill_sum_lookup(size_t n){
+	size_t k = (1<<n);
+
+	uint *sum_table = new_table(k*k);
+
+	for (size_t i = 0; i<k; i++){
+		for (size_t j = 0; j<k; j++){
+			sum_table[i*k+j] = i^j;
+		}
+	} 
+
+	return sum_table;
+}
+
+
+uint *fill_prod_lookup(size_t n, uint *tab_exp, uint *tab_log){
+	size_t k = (1<<n);
+
+	uint *prod_table = new_table(k*k);
+
+	for (size_t i = 0; i<k; i++){
+		for (size_t j = 0; j<k; j++){
+			if (i==0 || j==0){
+				prod_table[i*k+j] = 0;
+			} else {
+			prod_table[i*k+j] = tab_exp[(tab_log[i]+tab_log[j]) % (k-1)];
+			}
+		}
+	}
+
+	return prod_table;
+}
+
+
+void print_mat(const uint *mat, size_t n){
+	printf("[");
+
+	for (size_t i = 0; i<n; i++){
+		printf("[");
+		for (size_t j = 0; j<n; j++){
+			printf("%X,", mat[i*n+j]);
+		}
+		printf("\b]");
+		if ((i+1)!=n)
+			printf("\n");
+	}
+	printf("]\n");
 }
