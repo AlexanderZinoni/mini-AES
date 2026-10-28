@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
 typedef unsigned int uint;
 
@@ -68,7 +67,7 @@ void fill_tab_exp(uint *tab, size_t n, uint ppoly){
 		tmp <<= 1; // multiply tmp by X.
 
 		if ((tmp & (1<<n)) !=0){  
-			tmp ^= poly  // reduce modulo ppoly
+			tmp ^= ppoly;  // reduce modulo ppoly
 		}
 	}
 }
@@ -86,6 +85,17 @@ void fill_tab_log(uint *tab_log, uint *tab_exp, size_t n){
 		tab_log[tmp] = (uint) e;
 	}
 }
+
+
+uint inv_mod(uint poly, uint *tab_log, uint *tab_exp, size_t n){
+	if (poly == 1){
+		return 1;
+	}
+
+	uint exp = tab_log[poly];
+	return tab_exp[(1<<n) - 1 - exp];
+}
+
 
 int main(){
 	printf("main\n");
