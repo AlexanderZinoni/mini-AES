@@ -9,4 +9,6 @@ uint sub_byte(uint byte, size_t n, uint *tab_log, uint *tab_exp);
 
 void SubBytes(size_t n, uint *tab_log, uint *tab_exp, uint *state_mat);
 
+void ShiftRows(uint *state_mat);
+
 #endif

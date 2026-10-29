@@ -26,6 +26,9 @@ int main(){
 
     print_state(msg);
 
+    ShiftRows(msg);
+    print_state(msg);
+
     free_table(tab_exp);
     free_table(tab_log);
     free_table(sum_table);
