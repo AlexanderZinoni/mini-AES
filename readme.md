@@ -26,7 +26,7 @@ Encryption consists of an initial `AddRoundKey`, followed by 16 rounds involving
 
 The round keys are generated from a master key using a key schedule. The master key is 16 bits long.
 
-## Compilation enc Execution
+## Compilation and Execution
 
 Compile the project with `make`, then run the executable `main`. 
 By default, the program encrypts the string `"Very secret message. "` under the hex key `130E`.
