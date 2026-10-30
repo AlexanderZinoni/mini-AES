@@ -42,3 +42,24 @@ void ShiftRows(uint *state_mat){
 	state_mat[1] = state_mat[3];
 	state_mat[3] = tmp;
 }
+
+void MixColumns(uint *state_mat, uint ppoly){
+	uint a = 0x2;
+	uint b = 0x3;
+
+	uint s0 = state_mat[0];
+	uint s1 = state_mat[1];
+	uint s2 = state_mat[2];
+	uint s3 = state_mat[3];
+
+	state_mat[0] = mult_poly_mod(4, a, s0, ppoly) ^ mult_poly_mod(4, b, s1, ppoly);
+	state_mat[1] = mult_poly_mod(4, a, s1, ppoly) ^ mult_poly_mod(4, b, s0, ppoly);
+	state_mat[2] = mult_poly_mod(4, a, s2, ppoly) ^ mult_poly_mod(4, b, s3, ppoly);
+	state_mat[3] = mult_poly_mod(4, a, s3, ppoly) ^ mult_poly_mod(4, b, s2, ppoly);
+}
+
+void AddRoundKey(uint *state_mat, uint *key_mat){
+	for (int i = 0; i<4; i++){
+		state_mat[i] ^= key_mat[i];
+	}
+}

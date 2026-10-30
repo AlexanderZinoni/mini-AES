@@ -5,4 +5,4 @@
 -[] SubBytes
 -[] ShiftRows
 -[] MixColumns
--[] AddRoundKey $$$K_i$$
+-[] AddRoundKey $$K_i$$
