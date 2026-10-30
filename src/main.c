@@ -11,13 +11,13 @@ int main(){
     uint *tab_log = fill_tab_log(n, tab_exp);
     uint *prod_table = fill_prod_lookup(n, tab_exp, tab_log);
 
-    char msg[] = "Very secret message. ";
+    char msg[] = "Very secret message. "; // <---- your message
     size_t len = strlen(msg);
     size_t padded_len = len + (2 - len % 2);
     char cipher_hex[2 * padded_len + 1];
     char decrypted[padded_len + 1];
 
-    uint key[4] = {0x1, 0x3, 0x0, 0xE};
+    uint key[4] = {0x1, 0x3, 0x0, 0xE};  // <----- your key
 
     int rounds = 16;
 
