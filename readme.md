@@ -13,14 +13,14 @@ The implementation includes:
 
 ## Mini-AES
 
-The algorithm operates on 16-bit blocks, represented by four 4-bit elements (nibbles), over the finite field:
+The algorithm operates on 16-bit blocks, represented by four 4-bit elements, over the finite field:
 
 GF(2⁴) = GF(2)[x]/(x⁴ + x + 1).
 
 Encryption consists of an initial `AddRoundKey`, followed by 16 rounds involving:
 
 1. `SubBytes`: Nonlinear substitution using the inverse in GF(2⁴) and an affine transformation.
-2. `ShiftRows`: Permutation of the state elements.
+2. `ShiftRows`: Permutation of state elements.
 3. `MixColumns`: Linear transformation over GF(2⁴).
 4. `AddRoundKey`: XOR with the current round key.
 
