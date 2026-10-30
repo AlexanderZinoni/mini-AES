@@ -163,3 +163,157 @@ void mini_aes_dec(uint msg[4], const uint key[4], uint *tab_log, uint *tab_exp, 
 
 	AddRoundKey(msg, all_keys[0]);
 }
+
+
+void decToHexa(int n, char *hex) {
+    char hexaDeciNum[100];
+    int i = 0;
+
+    if (n == 0) {
+        hex[0] = '0';
+        hex[1] = '\0';
+        return;
+    }
+
+    while (n != 0) {
+        int temp = n % 16;
+
+        if (temp < 10)
+            hexaDeciNum[i++] = temp + '0';
+        else
+            hexaDeciNum[i++] = temp + 'A' - 10;
+
+        n /= 16;
+    }
+
+    int j = 0;
+    while (i > 0)
+        hex[j++] = hexaDeciNum[--i];
+
+    hex[j] = '\0';
+}
+
+void ASCIItoHEX(const char *ascii, char *hex) {
+    char part[10];
+    int j = 0;
+
+    for (int i = 0; ascii[i] != '\0'; i++) {
+        decToHexa((unsigned char)ascii[i], part);
+
+        for (int k = 0; part[k] != '\0'; k++)
+            hex[j++] = part[k];
+    }
+
+    hex[j] = '\0';
+}
+
+void enc_msg(const char *msg, const uint key[4],
+             uint *tab_log, uint *tab_exp,
+             uint *prod_table, int rounds,
+             char *cipher_hex) {
+
+    size_t len = strlen(msg);
+
+    // PKCS#7 padding: block size = 2 bytes
+    size_t padding = 2 - (len % 2);
+    size_t padded_len = len + padding;
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < padded_len; i += 2) {
+
+        uint state[4];
+
+        // Get the two bytes of the current block
+        uint byte1 = (i < len) ? (unsigned char)msg[i] : padding;
+        uint byte2 = (i + 1 < len) ? (unsigned char)msg[i + 1] : padding;
+
+        // Split bytes into four hexadecimal digits (nibbles)
+        state[0] = byte1 >> 4;
+        state[1] = byte1 & 0xF;
+        state[2] = byte2 >> 4;
+        state[3] = byte2 & 0xF;
+
+        // Encrypt the block
+        mini_aes_enc(state, key, tab_log, tab_exp, prod_table, rounds);
+
+        // Convert encrypted state to hexadecimal
+        for (int k = 0; k < 4; k++) {
+            cipher_hex[j++] = (state[k] < 10)
+                              ? state[k] + '0'
+                              : state[k] - 10 + 'A';
+        }
+    }
+
+    cipher_hex[j] = '\0';
+}
+
+void dec_msg(const char *cipher_hex, const uint key[4],
+             uint *tab_log, uint *tab_exp,
+             uint *prod_table, int rounds,
+             char *msg) {
+
+    size_t len = strlen(cipher_hex);
+
+    // Ciphertext must contain complete blocks (4 hex digits)
+    if (len % 4 != 0) {
+        fprintf(stderr, "Invalid ciphertext length.\n");
+        msg[0] = '\0';
+        return;
+    }
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < len; i += 4) {
+
+        uint state[4];
+
+        // Convert hexadecimal characters into nibbles
+        for (int k = 0; k < 4; k++) {
+            char c = cipher_hex[i + k];
+
+            if (c >= '0' && c <= '9')
+                state[k] = c - '0';
+            else if (c >= 'A' && c <= 'F')
+                state[k] = c - 'A' + 10;
+            else if (c >= 'a' && c <= 'f')
+                state[k] = c - 'a' + 10;
+            else {
+                fprintf(stderr, "Invalid hexadecimal character.\n");
+                msg[0] = '\0';
+                return;
+            }
+        }
+
+        // Decrypt block
+        mini_aes_dec(state, key, tab_log, tab_exp, prod_table, rounds);
+
+        // Reconstruct the original bytes
+        msg[j++] = (char)((state[0] << 4) | state[1]);
+        msg[j++] = (char)((state[2] << 4) | state[3]);
+    }
+
+    // Null terminate
+    msg[j] = '\0';
+
+    // Remove PKCS#7 padding
+    if (j > 0) {
+        unsigned char padding = (unsigned char)msg[j - 1];
+
+        if (padding >= 1 && padding <= 2) {
+            int valid = 1;
+
+            for (size_t i = j - padding; i < j; i++) {
+                if ((unsigned char)msg[i] != padding) {
+                    valid = 0;
+                    break;
+                }
+            }
+
+            if (valid) {
+                j -= padding;
+                msg[j] = '\0';
+            }
+        }
+    }
+}

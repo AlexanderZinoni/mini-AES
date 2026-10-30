@@ -11,13 +11,22 @@ int main(){
     uint *tab_log = fill_tab_log(n, tab_exp);
     uint *prod_table = fill_prod_lookup(n, tab_exp, tab_log);
 
-    uint msg[4] = {0xA, 0x2, 0x7, 0xD} ;
-    uint key[4] = {0x1, 0x3, 0x0, 0xE} ;
+    char msg[] = "Very secret message. ";
+    size_t len = strlen(msg);
+    size_t padded_len = len + (2 - len % 2);
+    char cipher_hex[2 * padded_len + 1];
+    char decrypted[padded_len + 1];
 
-    print_state(msg);
-    mini_aes_enc(msg, key, tab_log, tab_exp, prod_table, 16);
-    mini_aes_dec(msg, key, tab_log, tab_exp, prod_table, 16);
-    print_state(msg);
+    uint key[4] = {0x1, 0x3, 0x0, 0xE};
+
+    int rounds = 16;
+
+    enc_msg(msg, key, tab_log, tab_exp, prod_table, rounds, cipher_hex);
+    dec_msg(cipher_hex, key, tab_log, tab_exp, prod_table, rounds, decrypted);
+
+    printf("Original:  %s\n", msg);
+    printf("Encrypted: %s\n", cipher_hex);
+    printf("Decrypted: %s\n", decrypted);
 
     free_table(tab_exp);
     free_table(tab_log);
@@ -25,23 +34,3 @@ int main(){
 
     return 0;
 }
-
-/*
-Prod table for reference
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-[0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F]
-[0,2,4,6,8,A,C,E,3,1,7,5,B,9,F,D]
-[0,3,6,5,C,F,A,9,B,8,D,E,7,4,1,2]
-[0,4,8,C,3,7,B,F,6,2,E,A,5,1,D,9]
-[0,5,A,F,7,2,D,8,E,B,4,1,9,C,3,6]
-[0,6,C,A,B,D,7,1,5,3,9,F,E,8,2,4]
-[0,7,E,9,F,8,1,6,D,A,3,4,2,5,C,B]
-[0,8,3,B,6,E,5,D,C,4,F,7,A,2,9,1]
-[0,9,1,8,2,B,3,A,4,D,5,C,6,F,7,E]
-[0,A,7,D,E,4,9,3,F,5,8,2,1,B,6,C]
-[0,B,5,E,A,1,F,4,7,C,2,9,D,6,8,3]
-[0,C,B,7,5,9,E,2,A,6,1,D,F,3,4,8]
-[0,D,9,4,1,C,8,5,2,F,B,6,3,E,A,7]
-[0,E,F,1,D,3,2,C,9,7,6,8,4,A,B,5]
-[0,F,D,2,9,6,4,B,1,E,C,3,8,7,5,A]
-*/
