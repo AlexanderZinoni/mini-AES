@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a simplified version of the AES encryption algorithm (Mini-AES) in C, as part of TD4 – Algorithmique et programmation C (UVSQ).
+This project implements a simplified version of the AES encryption algorithm (Mini-AES) in C, as part of TD4 – Algorithmique et programmation C (Université Paris-Saclay).
 
 The implementation includes:
 - Finite field arithmetic over GF(2⁴).
