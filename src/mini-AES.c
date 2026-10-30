@@ -75,7 +75,6 @@ int get_c(int i) {
        	fprintf(stderr, "i out of range in get_c\n");
        	return 1; 
     }
-    
     return c_values[i];
 }
 
@@ -91,4 +90,20 @@ void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
 	key_mat[1] = new_k0k1&0xF;
 	key_mat[2] = new_k2k3>>4;
 	key_mat[3] = new_k2k3&0xF;
+}
+
+
+void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly){
+
+	AddRoundKey(msg, key);
+	next_key(key, 0, tab_log, tab_exp);
+	int round_nb = 16;
+
+	for(int i = 1; i<round_nb; i++){
+		SubBytes(4, tab_log, tab_exp, msg);
+		ShiftRows(msg);
+		MixColumns(msg, ppoly);
+		next_key(key, i, tab_log, tab_exp);
+		AddRoundKey(msg, key);
+	}
 }
