@@ -54,7 +54,7 @@ uint mult_poly_mod(size_t n, uint x, uint y, uint ppoly){
 }
 
 
-uint *get_tab_exp(size_t n, uint ppoly){
+uint *fill_tab_exp(size_t n, uint ppoly){
 	size_t k = (1<<n) - 1;  // size of the multiplicative group.
 	uint tmp = 1U;          // 1 in F2^n[X].
 
@@ -134,6 +134,12 @@ uint *fill_prod_lookup(size_t n, uint *tab_exp, uint *tab_log){
 	}
 
 	return prod_table;
+}
+
+
+uint fast_prod(size_t n, uint x, uint y, uint *prod_table){
+	size_t k = (1<<n);
+	return prod_table[k*x+y];
 }
 
 

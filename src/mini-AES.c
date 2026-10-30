@@ -5,9 +5,9 @@ static const uint VECTOR_B = 0x5;
 
 void print_state(uint s[4]){
     for (int i = 0; i<4; i++){
-        printf("%X, ", s[i]);
+        printf("%X", s[i]);
     }
-    printf("\b\b.\n");
+    printf(" \n");
 }
 
 
@@ -65,7 +65,7 @@ void ShiftRows(uint *state_mat){
 	state_mat[3] = tmp;
 }
 
-void MixColumns(uint *state_mat, uint ppoly){
+void MixColumns(uint *state_mat, uint *prod_table){
 	uint a = 0x2;
 	uint b = 0x3;
 
@@ -74,10 +74,10 @@ void MixColumns(uint *state_mat, uint ppoly){
 	uint s2 = state_mat[2];
 	uint s3 = state_mat[3];
 
-	state_mat[0] = mult_poly_mod(4, a, s0, ppoly) ^ mult_poly_mod(4, b, s1, ppoly);
-	state_mat[1] = mult_poly_mod(4, a, s1, ppoly) ^ mult_poly_mod(4, b, s0, ppoly);
-	state_mat[2] = mult_poly_mod(4, a, s2, ppoly) ^ mult_poly_mod(4, b, s3, ppoly);
-	state_mat[3] = mult_poly_mod(4, a, s3, ppoly) ^ mult_poly_mod(4, b, s2, ppoly);
+	state_mat[0] = fast_prod(4, a, s0, prod_table) ^ fast_prod(4, b, s1, prod_table);
+	state_mat[1] = fast_prod(4, a, s1, prod_table) ^ fast_prod(4, b, s0, prod_table);
+	state_mat[2] = fast_prod(4, a, s2, prod_table) ^ fast_prod(4, b, s3, prod_table);
+	state_mat[3] = fast_prod(4, a, s3, prod_table) ^ fast_prod(4, b, s2, prod_table);
 }
 
 
@@ -116,20 +116,20 @@ void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
 }
 
 
-void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds){
+void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
 	AddRoundKey(msg, key);
 
 	for(int i = 1; i<rounds; i++){
 		SubBytes(4, tab_log, tab_exp, msg);
 		ShiftRows(msg);
-		MixColumns(msg, ppoly);
+		MixColumns(msg, prod_table);
 		next_key(key, i, tab_log, tab_exp);
 		AddRoundKey(msg, key);
 	}
 }
 
 
-void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds){
+void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
 	uint all_keys[rounds][4];
 
 	for (int k=0; k<4; k++){
@@ -145,7 +145,7 @@ void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint p
 
 	for(int i = 1; i<rounds; i++){
 		AddRoundKey(msg, all_keys[rounds-i]);
-		MixColumns(msg, ppoly);
+		MixColumns(msg, prod_table);
 		ShiftRows(msg);
 		InvSubBytes(4, tab_log, tab_exp, msg);
 	}

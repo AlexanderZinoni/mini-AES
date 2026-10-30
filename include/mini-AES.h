@@ -17,7 +17,7 @@ void InvSubBytes(size_t n, uint *tab_log, uint *tab_exp, uint *state_mat);
 
 void ShiftRows(uint *state_mat);
 
-void MixColumns(uint *stat_mat, uint ppoly);
+void MixColumns(uint *stat_mat, uint *prod_table);
 
 void AddRoundKey(uint *state_mat, uint *key_mat);
 
@@ -25,8 +25,8 @@ int get_c(int i);
 
 void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp);
 
-void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds);
+void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
 
-void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds);
+void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
 
 #endif
