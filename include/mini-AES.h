@@ -15,4 +15,8 @@ void MixColumns(uint *stat_mat, uint ppoly);
 
 void AddRoundKey(uint *state_mat, uint *key_mat);
 
+int get_c(int i);
+
+void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp);
+
 #endif

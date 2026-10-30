@@ -63,3 +63,32 @@ void AddRoundKey(uint *state_mat, uint *key_mat){
 		state_mat[i] ^= key_mat[i];
 	}
 }
+
+
+int get_c(int i) {
+    static const int c_values[16] = {
+        1, 1, 2, 2, 1, 2, 2, 1, 
+        1, 1, 1, 2, 1, 1, 1, 1
+    };
+    
+    if (i < 0 || i > 15){
+       	fprintf(stderr, "i out of range in get_c\n");
+       	return 1; 
+    }
+    
+    return c_values[i];
+}
+
+
+void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
+	int c = get_c(i);
+	uint k2k3 = key_mat[2]<<4 | key_mat[3];
+	k2k3 = ((k2k3 >> (8-c)) | (k2k3<<c)) & 0xFF; // circular left shift of c bits
+	k2k3 = (sub_byte((k2k3>>4), 4, tab_log, tab_exp)^(1<<i))<<4 | sub_byte((k2k3 & 0xF), 4, tab_log, tab_exp);
+	uint new_k0k1 = k2k3 ^ (key_mat[0]<<4 | key_mat[1]);
+	uint new_k2k3 = new_k0k1 ^ (key_mat[2]<<4 | key_mat[3]);
+	key_mat[0] = new_k0k1>>4;
+	key_mat[1] = new_k0k1&0xF;
+	key_mat[2] = new_k2k3>>4;
+	key_mat[3] = new_k2k3&0xF;
+}
