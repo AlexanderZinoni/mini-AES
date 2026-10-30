@@ -30,8 +30,9 @@ The round keys are generated from a master key using a key schedule. The master 
 
 Compile the project with `make`, then run the executable `main`. 
 By default, the program encrypts the string `"Very secret message. "` under the hex key `130E`, and displays the following: 
-`
-Original:  Very secret message. 
-Encrypted: F1E71C2DC93FE726B6223F628AD5DC256061465E7CF8
-Decrypted: Very secret message. 
-`
+
+
+    Original:  Very secret message. 
+    Encrypted: F1E71C2DC93FE726B6223F628AD5DC256061465E7CF8
+    Decrypted: Very secret message. 
+
