@@ -25,8 +25,8 @@ int get_c(int i);
 
 void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp);
 
-void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
+void mini_aes_enc(uint msg[4], const uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
 
-void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
+void mini_aes_dec(uint msg[4], const uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds);
 
 #endif

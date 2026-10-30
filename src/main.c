@@ -16,12 +16,6 @@ int main(){
 
     print_state(msg);
     mini_aes_enc(msg, key, tab_log, tab_exp, prod_table, 16);
-
-    key[0] = 0x1;
-    key[1] = 0x3;
-    key[2] = 0x0;
-    key[3] = 0xE;
-
     mini_aes_dec(msg, key, tab_log, tab_exp, prod_table, 16);
     print_state(msg);
 

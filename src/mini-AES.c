@@ -116,30 +116,41 @@ void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
 }
 
 
-void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
-	AddRoundKey(msg, key);
+void mini_aes_enc(uint msg[4], const uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
+	uint key_cpy[4];
+
+	for (int i=0; i<4; i++){
+		key_cpy[i] = key[i];
+	}
+
+	AddRoundKey(msg, key_cpy);
 
 	for(int i = 1; i<rounds; i++){
 		SubBytes(4, tab_log, tab_exp, msg);
 		ShiftRows(msg);
 		MixColumns(msg, prod_table);
-		next_key(key, i, tab_log, tab_exp);
-		AddRoundKey(msg, key);
+		next_key(key_cpy, i, tab_log, tab_exp);
+		AddRoundKey(msg, key_cpy);
 	}
 }
 
 
-void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
+void mini_aes_dec(uint msg[4], const uint key[4], uint *tab_log, uint *tab_exp, uint *prod_table, int rounds){
+	uint key_cpy[4];
+	for (int i=0; i<4; i++){
+		key_cpy[i] = key[i];
+	}
+	
 	uint all_keys[rounds][4];
 
 	for (int k=0; k<4; k++){
-		all_keys[0][k] = key[k];
+		all_keys[0][k] = key_cpy[k];
 	}
 
 	for (int i=1; i<rounds; i++){
-		next_key(key, i, tab_log, tab_exp);
+		next_key(key_cpy, i, tab_log, tab_exp);
 		for (int k=0; k<4; k++){
-			all_keys[i][k] = key[k];
+			all_keys[i][k] = key_cpy[k];
 		}
 	}
 
