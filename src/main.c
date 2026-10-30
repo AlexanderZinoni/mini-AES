@@ -1,12 +1,6 @@
 #include "table.h"
 #include "mini-AES.h"
 
-void print_state(uint s[4]){
-    for (int i = 0; i<4; i++){
-        printf("%X, ", s[i]);
-    }
-    printf("\b\b.\n");
-}
 
 int main(){
     size_t n = 4;
@@ -18,15 +12,20 @@ int main(){
     uint *sum_table = fill_sum_lookup(n);
     uint *prod_table = fill_prod_lookup(n, tab_exp, tab_log);
 
-    uint msg[4] = {0xA, 0xB, 0xC, 0xD} ;
+    uint msg[4] = {0xA, 0x2, 0x7, 0xD} ;
+    uint key[4] = {0x1, 0x3, 0x0, 0xE} ;
 
+    printf("msg");
     print_state(msg);
+    mini_aes_enc(msg, key, tab_log, tab_exp, ppoly, 16);
 
-    SubBytes(n, tab_log, tab_exp, msg);
+    key[0] = 0x1;
+    key[1] = 0x3;
+    key[2] = 0x0;
+    key[3] = 0xE;
 
-    print_state(msg);
-
-    ShiftRows(msg);
+    mini_aes_dec(msg, key, tab_log, tab_exp, ppoly, 16);
+    printf("msg");
     print_state(msg);
 
     free_table(tab_exp);

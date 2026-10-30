@@ -3,13 +3,20 @@
 static const uint MATRIX_A[4] = {0xB, 0xD, 0xE, 0x7};
 static const uint VECTOR_B = 0x5;
 
+void print_state(uint s[4]){
+    for (int i = 0; i<4; i++){
+        printf("%X, ", s[i]);
+    }
+    printf("\b\b.\n");
+}
 
-uint mat_vec_prod(size_t taille, uint vec) {
+
+uint mat_vec_prod(size_t taille, uint vec, const uint mat[4]) {
     uint tmp = 0;
 
     for (size_t i = 0; i < taille; i++) {
         // __builtin_parity renvoie 1 si le nombre de bits à 1 est impair (produit scalaire modulo 2)
-        if (__builtin_parity(vec & MATRIX_A[i])) {
+        if (__builtin_parity(vec & mat[i])) {
             tmp |= (1U << i);
         }
     }
@@ -23,10 +30,20 @@ uint sub_byte(uint byte, size_t n, uint *tab_log, uint *tab_exp){
 	}
 
 	byte = inv_mod(byte, tab_log, tab_exp, n);
-	byte = mat_vec_prod(n, byte);
-	
+	byte = mat_vec_prod(n, byte, MATRIX_A);
 	byte ^= VECTOR_B;
 
+	return byte;
+}
+
+uint inv_sub_byte(uint byte, size_t n, uint *tab_log, uint *tab_exp){
+	if (byte == VECTOR_B){
+		return 0;
+	}
+
+	byte ^= VECTOR_B;
+	byte = mat_vec_prod(n, byte, MATRIX_A); // A is an orthogonal matrix
+	byte = inv_mod(byte, tab_log, tab_exp, n);
 	return byte;
 }
 
@@ -36,6 +53,11 @@ void SubBytes(size_t n, uint *tab_log, uint *tab_exp, uint *state_mat){
 	}
 }
 
+void InvSubBytes(size_t n, uint *tab_log, uint *tab_exp, uint *state_mat){
+	for(size_t i = 0; i<4; i++){
+		state_mat[i] = inv_sub_byte(state_mat[i], n, tab_log, tab_exp);	
+	}
+}
 
 void ShiftRows(uint *state_mat){
 	uint tmp = state_mat[1];
@@ -57,6 +79,7 @@ void MixColumns(uint *state_mat, uint ppoly){
 	state_mat[2] = mult_poly_mod(4, a, s2, ppoly) ^ mult_poly_mod(4, b, s3, ppoly);
 	state_mat[3] = mult_poly_mod(4, a, s3, ppoly) ^ mult_poly_mod(4, b, s2, ppoly);
 }
+
 
 void AddRoundKey(uint *state_mat, uint *key_mat){
 	for (int i = 0; i<4; i++){
@@ -83,7 +106,7 @@ void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
 	int c = get_c(i);
 	uint k2k3 = key_mat[2]<<4 | key_mat[3];
 	k2k3 = ((k2k3 >> (8-c)) | (k2k3<<c)) & 0xFF; // circular left shift of c bits
-	k2k3 = (sub_byte((k2k3>>4), 4, tab_log, tab_exp)^(1<<i))<<4 | sub_byte((k2k3 & 0xF), 4, tab_log, tab_exp);
+	k2k3 = (sub_byte((k2k3>>4), 4, tab_log, tab_exp)^(1<<(i%4)))<<4 | sub_byte((k2k3 & 0xF), 4, tab_log, tab_exp);
 	uint new_k0k1 = k2k3 ^ (key_mat[0]<<4 | key_mat[1]);
 	uint new_k2k3 = new_k0k1 ^ (key_mat[2]<<4 | key_mat[3]);
 	key_mat[0] = new_k0k1>>4;
@@ -93,17 +116,39 @@ void next_key(uint *key_mat, int i, uint *tab_log, uint *tab_exp){
 }
 
 
-void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly){
-
+void mini_aes_enc(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds){
 	AddRoundKey(msg, key);
-	next_key(key, 0, tab_log, tab_exp);
-	int round_nb = 16;
 
-	for(int i = 1; i<round_nb; i++){
+	for(int i = 1; i<rounds; i++){
 		SubBytes(4, tab_log, tab_exp, msg);
 		ShiftRows(msg);
 		MixColumns(msg, ppoly);
 		next_key(key, i, tab_log, tab_exp);
 		AddRoundKey(msg, key);
 	}
+}
+
+
+void mini_aes_dec(uint msg[4], uint key[4], uint *tab_log, uint *tab_exp, uint ppoly, int rounds){
+	uint all_keys[rounds][4];
+
+	for (int k=0; k<4; k++){
+		all_keys[0][k] = key[k];
+	}
+
+	for (int i=1; i<rounds; i++){
+		next_key(key, i, tab_log, tab_exp);
+		for (int k=0; k<4; k++){
+			all_keys[i][k] = key[k];
+		}
+	}
+
+	for(int i = 1; i<rounds; i++){
+		AddRoundKey(msg, all_keys[rounds-i]);
+		MixColumns(msg, ppoly);
+		ShiftRows(msg);
+		InvSubBytes(4, tab_log, tab_exp, msg);
+	}
+
+	AddRoundKey(msg, all_keys[0]);
 }
